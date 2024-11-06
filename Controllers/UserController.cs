@@ -68,7 +68,6 @@ namespace monchotradebackend.controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] JsonPatchDocument<UserUpdateDto> patchDoc)
         {
-            Console.WriteLine(patchDoc);
             try
             {
                 if (patchDoc == null)
