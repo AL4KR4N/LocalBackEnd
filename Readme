@@ -1,0 +1,9 @@
+Como correr el programa en tu maquina:
+Abre terminal
+1) dotnet restore 
+Crear base de datos local si es que no existe: 
+2) dotnet ef migrations add InitialCreate
+3) dotnet ef database update
+
+Agregar migraciones/cambios a la base de datos, a futuro:
+4) dotnet ef migrations add UsuariosSeed 
