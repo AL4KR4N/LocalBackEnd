@@ -15,5 +15,15 @@ public class ProductDto{
     public string Description{get;set;} = string.Empty;
     public string Category {get;set;} = string.Empty; 
     public int? TotalNumber {get;set;}
-    public int? Quantity {get;set;}
+}
+
+public class ProductGetbyUserIdDto{
+    public int Id {get;set;}
+    public string Title {get;set;} = string.Empty;
+    public string ImageUrl {get;set;} = string.Empty;
+    public string OfferedBy {get; set;} = string.Empty; 
+    public string Description{get;set;} = string.Empty;
+    public string Category {get;set;} = string.Empty; 
+    public int? TotalNumber {get;set;}
+    public int? Quantity{get;set;}
 }

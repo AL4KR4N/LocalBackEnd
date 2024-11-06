@@ -153,24 +153,29 @@ namespace monchotradebackend.controllers
                     .ThenInclude(p => p.Images)
                 .FirstOrDefaultAsync(p => p.Id == userId);
 
-            if (user == null)
-            {
-                return NotFound("User not found.");
-            }
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
 
-            if (user.Products == null || !user.Products.Any())
-            {
-                return NotFound("No products found for this user.");
-            }
+        if (user.Products == null || !user.Products.Any())
+        {
+            return NotFound("No products found for this user.");
+        }
 
-            var productsDto = user.Products.Select(product => new ProductDto
+        // Changed from CountAsync() to Count()
+        var totalItems = user.Products.Count();
+
+
+            var productsDto = user.Products.Select(product => new ProductGetbyUserIdDto
             {
                 Id = product.Id,
                 Title = product.Name,
-                ImageUrl = product.Images?.FirstOrDefault()?.Url, // Toma la primera imagen si existe
+                ImageUrl = $"https://localhost:7001/uploads/products/{product.Images?.FirstOrDefault()?.Url ?? "default-image.jpg"}",
                 OfferedBy = user.Name, // o cualquier propiedad del usuario que identifique al vendedor
                 Description = product.Description,
                 Category = product.Category,
+                TotalNumber = totalItems,
                 Quantity = product.Quantity
                 // Agrega otras propiedades según tu modelo
             }).ToList();
