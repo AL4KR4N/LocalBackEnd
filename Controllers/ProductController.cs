@@ -11,6 +11,16 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.JsonPatch;
 
+/*
+    Endpoints implementados
+    Get GetAllProducts
+    Get{id} GetProductById
+    Post CreateProduct
+    Patch {id} UpdateProduct
+    Delete {id} DeleteProduct
+*/
+
+
 namespace monchotradebackend.controllers
 {
 

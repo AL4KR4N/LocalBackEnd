@@ -9,6 +9,16 @@ using Azure;
 using Microsoft.AspNetCore.JsonPatch;
 using System.ComponentModel.DataAnnotations;
 
+/*
+    Endpoints implementados
+    
+    Get{id} GetUserById
+    Patch{id} UpdateUser
+    Get products/{useid} GetProductsByUserId
+*/
+
+
+
 namespace monchotradebackend.controllers 
 {
     [ApiController]

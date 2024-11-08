@@ -5,6 +5,20 @@ using monchotradebackend.models.dtos;
 using Microsoft.EntityFrameworkCore;
 using monchotradebackend.service;
 
+
+/*
+    Endpoints implementados
+    Get GetAllProfilePics
+    Get user/{userId} GetProfileImageByUserId
+    Post CreateProfileImage
+    Put{id} UpdateProfileImage -> cambiar a patch
+    Delete{id} DeleteProfileImage
+*/
+
+
+
+
+
 namespace monchotradebackend.controllers
 {
     [ApiController]
@@ -147,7 +161,7 @@ namespace monchotradebackend.controllers
         }
 
         [HttpGet("user/{id}")]
-        public async Task<IActionResult> GetProfileImageBy(int id)
+        public async Task<IActionResult> GetProfileImageByUserId(int id)
         {
             try 
             {
@@ -172,7 +186,7 @@ namespace monchotradebackend.controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProfilePics()
+        public async Task<IActionResult> GetAllProfilePics()
         {
             try
             {

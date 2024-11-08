@@ -5,6 +5,16 @@ using monchotradebackend.models.dtos;
 using Microsoft.EntityFrameworkCore;
 using monchotradebackend.service;
 
+/*
+    Endpoints implementados
+    Get GetAllProductImages
+    Get product/{productId} GetProductImagesByProductId
+    Post CreateProductImage
+    Put{id} UpdateProductImage -> cambiar a patch
+    Delete{id} DeleteProductImage
+*/
+
+
 namespace monchotradebackend.controllers
 {
     [ApiController]

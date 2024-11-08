@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 /*
@@ -31,7 +32,7 @@ namespace monchotradebackend.models.entities
         public int Quantity { get; set; }
 
         [Required]
-        public string Category { get; set; } = string.Empty; 
+        public int CategoryId { get; set; } 
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
@@ -44,5 +45,6 @@ namespace monchotradebackend.models.entities
 
         // Navigation property to associate with the user
         public virtual User? User { get; set; }
+        public virtual Category? ProductCategory {get;set;}
     }
 }

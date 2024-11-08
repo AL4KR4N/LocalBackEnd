@@ -5,6 +5,13 @@ using monchotradebackend.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+/*
+    Endpoints implementados
+    
+    Post Login
+    Post Signup/CreateUser
+*/
+
 
 namespace monchotradebackend.controllers{
     
