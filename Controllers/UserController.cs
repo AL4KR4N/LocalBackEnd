@@ -160,6 +160,8 @@ namespace monchotradebackend.controllers
             var user = await _dbRepository.GetQueryable()
                 .Include(p => p.Products)
                     .ThenInclude(p => p.Images)
+                .Include(p => p.Products)
+                    .ThenInclude(p => p.ProductCategory) 
                 .FirstOrDefaultAsync(p => p.Id == userId);
 
         if (user == null)
@@ -183,7 +185,7 @@ namespace monchotradebackend.controllers
                 ImageUrl = $"https://localhost:7001/uploads/products/{product.Images?.FirstOrDefault()?.Url ?? "default-image.jpg"}",
                 OfferedBy = user.Name, // o cualquier propiedad del usuario que identifique al vendedor
                 Description = product.Description,
-                Category = product.Category,
+                Category = product.ProductCategory.Name,
                 TotalNumber = totalItems,
                 Quantity = product.Quantity
                 // Agrega otras propiedades según tu modelo

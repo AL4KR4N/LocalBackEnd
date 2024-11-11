@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using monchotradebackend.models.entities;
 
 /*
     Id 
@@ -48,3 +49,5 @@ namespace monchotradebackend.models.entities
         public virtual Category? ProductCategory {get;set;}
     }
 }
+
+

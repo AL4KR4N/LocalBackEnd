@@ -120,7 +120,7 @@ namespace monchotradebackend.controllers
                         ImageUrl = p.Images.FirstOrDefault().Url,
                         OfferedBy = p.User != null ? p.User.Name : "",
                         Description = p.Description,
-                        Category = p.Category,
+                       // Category = p.Category,
                         TotalNumber = totalItems
                     })
                     .ToListAsync();
@@ -162,6 +162,8 @@ namespace monchotradebackend.controllers
             var product = await _dbRepository.GetQueryable()
                 .Include(p => p.User)
                 .Include(p => p.Images)
+                .Include(p => p.ProductCategory)
+                
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
@@ -177,7 +179,7 @@ namespace monchotradebackend.controllers
                 ImageUrl = product.Images.FirstOrDefault()?.Url ?? "",  // Use null-checking for Images collection
                 OfferedBy = product.User?.Name ?? "",  // Use null-checking for User
                 Description = product.Description,
-                Category = product.Category
+                Category = product.ProductCategory.Name
             };
 
             return Ok(productDto);
@@ -231,6 +233,7 @@ public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocum
         var existingProduct = await _dbRepository.GetQueryable()
             .Include(p => p.User)
             .Include(p => p.Images)
+            .Include(p => p.ProductCategory)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (existingProduct == null)
@@ -245,7 +248,7 @@ public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocum
             ImageUrl = existingProduct.Images?.FirstOrDefault()?.Url ?? string.Empty,
             OfferedBy = existingProduct.User.Name,
             Description = existingProduct.Description,
-            Category = existingProduct.Category,
+            Category = existingProduct.ProductCategory.Name,
             Quantity = existingProduct.Quantity
         };
 
@@ -269,7 +272,7 @@ public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocum
         existingProduct.Name = productDto.Title;
         existingProduct.User.Name = productDto.OfferedBy;
         existingProduct.Description = productDto.Description;
-        existingProduct.Category = productDto.Category;
+        existingProduct.ProductCategory.Name = productDto.Category;
         existingProduct.Quantity = productDto.Quantity;
 
         // Handle image update if the ImageUrl has changed
@@ -307,7 +310,7 @@ public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocum
             ImageUrl = existingProduct.Images?.FirstOrDefault()?.Url,
             OfferedBy = existingProduct.User.Name,
             Description = existingProduct.Description,
-            Category = existingProduct.Category,
+            Category = existingProduct.ProductCategory.Name,
             Quantity = existingProduct.Quantity
         });
     }
