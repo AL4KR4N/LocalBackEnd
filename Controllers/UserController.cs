@@ -3,9 +3,6 @@ using monchotradebackend.Interface;
 using monchotradebackend.models.entities;
 using monchotradebackend.models.dtos;
 using Microsoft.EntityFrameworkCore;
-using monchotradebackend.service;
-using Newtonsoft.Json;
-using Azure;
 using Microsoft.AspNetCore.JsonPatch;
 using System.ComponentModel.DataAnnotations;
 
@@ -19,7 +16,7 @@ using System.ComponentModel.DataAnnotations;
 
 
 
-namespace monchotradebackend.controllers 
+namespace monchotradebackend.controllers
 {
     [ApiController]
     [Route("user")]

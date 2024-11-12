@@ -93,7 +93,7 @@ namespace monchotradebackend.controllers
             _logger = logger;
         }
 
-      [HttpGet]
+        [HttpGet]
         public async Task<ActionResult<PaginatedResponse<ProductDto>>> GetAllProducts([FromQuery] PaginationParameters parameters)
         {
             try
@@ -101,7 +101,8 @@ namespace monchotradebackend.controllers
                 // Get the base query
                 var query = _dbRepository.GetQueryable()
                     .Include(u => u.User)
-                    .Include(i => i.Images);
+                    .Include(i => i.Images)
+                    .Include(p => p.ProductCategory);
 
                 // Get total count
                 var totalItems = await query.CountAsync();
@@ -120,7 +121,7 @@ namespace monchotradebackend.controllers
                         ImageUrl = p.Images.FirstOrDefault().Url,
                         OfferedBy = p.User != null ? p.User.Name : "",
                         Description = p.Description,
-                       // Category = p.Category,
+                        Category = p.ProductCategory.Name,
                         TotalNumber = totalItems
                     })
                     .ToListAsync();
@@ -347,6 +348,5 @@ public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocum
 
 
     }
-
 
 }
