@@ -80,19 +80,24 @@ namespace monchotradebackend.controllers
     public class ProductController : ControllerBase
     {
         private readonly IFileService _fileService;
-        private readonly IRepository<Product, int> _dbRepository;
         private readonly ILogger<ProductController> _logger;
-
+        private readonly IRepository<Product, int> _dbRepository;
+        private readonly IRepository<Category, int> _dbRepositoryCategory;
+        private readonly IRepository<ProductImage, int> _dbRepositoryProductImage;
         public ProductController(
             IFileService fileService, 
             IRepository<Product, int> dbRepository, 
-            ILogger<ProductController> logger)
+            ILogger<ProductController> logger, 
+            IRepository<Category, int> dbRepositoryCategory, 
+            IRepository<ProductImage, int> dbRepositoryProductImage)
         {
             _fileService = fileService;
             _dbRepository = dbRepository;
             _logger = logger;
+            _dbRepositoryCategory = dbRepositoryCategory;
+            _dbRepositoryProductImage = dbRepositoryProductImage;
         }
-
+    
         [HttpGet]
         public async Task<ActionResult<PaginatedResponse<ProductDto>>> GetAllProducts([FromQuery] PaginationParameters parameters)
         {
@@ -195,19 +200,51 @@ namespace monchotradebackend.controllers
 
         //Create/Post product 
         [HttpPost]
-        public async Task<ActionResult> CreateProduct(Product  newProduct)
+        public async Task<ActionResult> CreateProduct(ProductCreateDto  newProduct)
         {
             try
             {
-                bool exists = await _dbRepository.GetQueryable()
-                    .AnyAsync(s => s.Id == newProduct.Id);
-
-                if (exists)
+                if(newProduct == null)
+                    return BadRequest("nuevo producto es nulo");
+                    
+                
+                if(newProduct.ImageFile == null)
+                    return BadRequest("nuevo producto no tiene imagen");
+                
+                var categories = await _dbRepositoryCategory.GetAllAsync();
+                var category = categories?.FirstOrDefault(c => c.Name == newProduct.Category);
+        
+                if (category == null)
                 {
-                    return BadRequest("Id del salario ya está registrado.");
+                    _logger.LogWarning($"Category not found: {newProduct.Category}");
+                    return BadRequest($"Category '{newProduct.Category}' not found");
                 }
 
-                await _dbRepository.InsertAsync(newProduct);
+                var product = new Product{
+                    UserId = newProduct.UserId,
+                    Name = newProduct.Title,
+                    Description = newProduct.Description,
+                    Quantity = newProduct.Quantity, 
+                    CategoryId = category.Id, 
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsActive  = newProduct.IsActive,
+                };
+
+                
+
+                string[] allowedFileExtensions = [".jpg", ".jpeg", ".png", ".jfif"]; 
+                string createdImageName = await _fileService.SaveFileAsync(newProduct.ImageFile, allowedFileExtensions,UploadType.Product);  
+                
+                await _dbRepository.InsertAsync(product);
+                await _dbRepository.SaveChangesAsync();
+
+                var image = new ProductImage{
+                    Url = createdImageName,
+                    ProductId = product.Id 
+                }; 
+
+                await _dbRepositoryProductImage.InsertAsync(image); 
                 await _dbRepository.SaveChangesAsync();
 
                 return Ok();
@@ -220,7 +257,7 @@ namespace monchotradebackend.controllers
         }
 
         //Update/Put product 
- [HttpPatch("{id}")]
+[HttpPatch("{id}")]
 public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocument<ProductUpdateDto> patchDoc)
 {
     try

@@ -49,7 +49,7 @@ namespace monchotradebackend.controllers
                     return StatusCode(StatusCodes.Status400BadRequest, "File size should not exceed 1 MB");             
                 }
 
-                string[] allowedFileExtensions = [".jpg", ".jpeg", ".png"];
+                string[] allowedFileExtensions = [".jpg", ".jpeg", ".png", ".jfif"];
 
                 if(imageToAdd.ImageFile == null)
                     return StatusCode(StatusCodes.Status400BadRequest, "ImageFile is null");
