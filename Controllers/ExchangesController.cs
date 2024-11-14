@@ -4,6 +4,7 @@ using monchotradebackend.Interface;
 using monchotradebackend.models.entities;
 using monchotradebackend.models.dtos;
 using Microsoft.AspNetCore.JsonPatch;
+using System.Drawing;
 
 namespace monchotradebackend.controllers
 {
@@ -60,6 +61,47 @@ namespace monchotradebackend.controllers
             }
         }
 
+        [HttpGet("user/{userid}")]
+        public async Task<ActionResult<List<ExchangeDto>>> GetExchangesByUserId(int userid)
+        {
+        try
+        {
+            var exchanges = await _dbRepository.GetQueryable()
+                .Include(e => e.InitiatorUser)
+                .Include(e => e.ReceiverUser) 
+                .Include(e => e.InitiatorProduct)
+                .Include(e => e.ReceiverProduct)
+                .Where(u => u.InitiatorUserId == userid || u.ReceiverUserId == userid)
+                .Select(e => new ExchangeDto
+                {
+                    Id = e.Id,
+                    InitiatorUserId = e.InitiatorUserId,
+                    ReceiverUserId = e.ReceiverUserId,
+                    InitiatorProductId = e.InitiatorProductId,
+                    ReceiverProductId = e.ReceiverProductId,
+                    CreatedAt = e.CreatedAt,
+                    UpdatedAt = e.UpdatedAt,
+                    Status = e.Status,
+                    RejectionReason = e.RejectionReason,
+                    Notes = e.Notes,
+                    InitiatorUserName = e.InitiatorUser.Name,
+                    ReceiverUserName = e.ReceiverUser.Name,
+                    InitiatorProductName = e.InitiatorProduct.Name,
+                    ReceiverProductName = e.ReceiverProduct.Name
+                })
+                .ToListAsync();
+
+            return Ok(exchanges);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching exchanges data by user id.");
+            return StatusCode(500, "An error occurred while fetching exchanges data by user id.");
+        }
+        }
+
+
+
         [HttpGet("{id}")]
         public async Task<ActionResult<ExchangeDto>> GetExchangeById(int id)
         {
@@ -103,6 +145,10 @@ namespace monchotradebackend.controllers
                 return StatusCode(500, "An error occurred while fetching exchange data.");
             }
         }
+
+
+       
+
 
         [HttpPut]
         public async Task<ActionResult> CreateExchange(Exchange newExchange)

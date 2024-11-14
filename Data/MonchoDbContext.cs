@@ -270,31 +270,86 @@ public class MonchoDbContext: DbContext{
         
             // Datos de ejemplo para Exchange
         modelBuilder.Entity<Exchange>().HasData(
-            new Exchange
-            {
-                Id = 1,
-                InitiatorUserId = 1,
-                ReceiverUserId = 2,
-                InitiatorProductId = 1,
-                ReceiverProductId = 3,
-                CreatedAt = DateTime.Now,
-                Status = ExchangeStatus.Pending,
-                Notes = "Interested in exchanging my jeans for your headphones"
-            },
-            new Exchange
-            {
-                Id = 2,
-                InitiatorUserId = 3,
-                ReceiverUserId = 4,
-                InitiatorProductId = 5,
-                ReceiverProductId = 7,
-                CreatedAt = DateTime.Now,
-                Status = ExchangeStatus.Accepted,
-                Notes = "Would like to exchange my sneakers for your charger"
-            }
+            // User 1 exchanges (ID: 1-2)
+            new Exchange { Id = 1, InitiatorUserId = 1, ReceiverUserId = 2, InitiatorProductId = 1, ReceiverProductId = 3, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Jeans for headphones" },
+            new Exchange { Id = 2, InitiatorUserId = 1, ReceiverUserId = 3, InitiatorProductId = 2, ReceiverProductId = 5, CreatedAt = DateTime.Now, Status = ExchangeStatus.Accepted, Notes = "T-Shirt for sneakers" },
+
+            // User 2 exchanges (ID: 3-4)
+            new Exchange { Id = 3, InitiatorUserId = 2, ReceiverUserId = 4, InitiatorProductId = 3, ReceiverProductId = 7, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Headphones for charger" },
+            new Exchange { Id = 4, InitiatorUserId = 2, ReceiverUserId = 5, InitiatorProductId = 4, ReceiverProductId = 9, CreatedAt = DateTime.Now, Status = ExchangeStatus.Rejected, RejectionReason = "Item condition not as expected", Notes = "Speaker for shirt" },
+
+            // User 3 exchanges (ID: 5-6)
+            new Exchange { Id = 5, InitiatorUserId = 3, ReceiverUserId = 6, InitiatorProductId = 5, ReceiverProductId = 11, CreatedAt = DateTime.Now, Status = ExchangeStatus.Accepted, Notes = "Sneakers for laptop stand" },
+            new Exchange { Id = 6, InitiatorUserId = 3, ReceiverUserId = 7, InitiatorProductId = 6, ReceiverProductId = 13, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Running shoes for watch" },
+
+            // User 4 exchanges (ID: 7-8)
+            new Exchange { Id = 7, InitiatorUserId = 4, ReceiverUserId = 8, InitiatorProductId = 7, ReceiverProductId = 15, CreatedAt = DateTime.Now, Status = ExchangeStatus.Rejected, RejectionReason = "Found another exchange", Notes = "Charger for jacket" },
+            new Exchange { Id = 8, InitiatorUserId = 4, ReceiverUserId = 9, InitiatorProductId = 8, ReceiverProductId = 17, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Power bank for tablet" },
+
+            // User 5 exchanges (ID: 9-10)
+            new Exchange { Id = 9, InitiatorUserId = 5, ReceiverUserId = 10, InitiatorProductId = 9, ReceiverProductId = 19, CreatedAt = DateTime.Now, Status = ExchangeStatus.Accepted, Notes = "Formal shirt for yoga mat" },
+            new Exchange { Id = 10, InitiatorUserId = 5, ReceiverUserId = 11, InitiatorProductId = 10, ReceiverProductId = 21, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Dress pants for desk organizer" },
+
+            // User 6 exchanges (ID: 11-12)
+            new Exchange { Id = 11, InitiatorUserId = 6, ReceiverUserId = 12, InitiatorProductId = 11, ReceiverProductId = 23, CreatedAt = DateTime.Now, Status = ExchangeStatus.Rejected, RejectionReason = "Size doesn't match description", Notes = "Laptop stand for vase" },
+            new Exchange { Id = 12, InitiatorUserId = 6, ReceiverUserId = 13, InitiatorProductId = 12, ReceiverProductId = 25, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Mouse for gaming mouse" },
+
+            // User 7 exchanges (ID: 13-14)
+            new Exchange { Id = 13, InitiatorUserId = 7, ReceiverUserId = 14, InitiatorProductId = 13, ReceiverProductId = 27, CreatedAt = DateTime.Now, Status = ExchangeStatus.Accepted, Notes = "Digital watch for wall art" },
+            new Exchange { Id = 14, InitiatorUserId = 7, ReceiverUserId = 15, InitiatorProductId = 14, ReceiverProductId = 29, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Fitness tracker for thermostat" },
+
+            // User 8 exchanges (ID: 15-16)
+            new Exchange { Id = 15, InitiatorUserId = 8, ReceiverUserId = 16, InitiatorProductId = 15, ReceiverProductId = 31, CreatedAt = DateTime.Now, Status = ExchangeStatus.Rejected, RejectionReason = "Item no longer available", Notes = "Jacket for sunglasses" },
+            new Exchange { Id = 16, InitiatorUserId = 8, ReceiverUserId = 17, InitiatorProductId = 16, ReceiverProductId = 33, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Scarf for hoodie" },
+
+            // User 9 exchanges (ID: 17-18)
+            new Exchange { Id = 17, InitiatorUserId = 9, ReceiverUserId = 18, InitiatorProductId = 17, ReceiverProductId = 35, CreatedAt = DateTime.Now, Status = ExchangeStatus.Accepted, Notes = "Tablet for portable charger" },
+            new Exchange { Id = 18, InitiatorUserId = 9, ReceiverUserId = 19, InitiatorProductId = 18, ReceiverProductId = 37, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Tablet case for cookware" },
+
+            // User 10 exchanges (ID: 19-20)
+            new Exchange { Id = 19, InitiatorUserId = 10, ReceiverUserId = 20, InitiatorProductId = 19, ReceiverProductId = 39, CreatedAt = DateTime.Now, Status = ExchangeStatus.Rejected, RejectionReason = "Changed my mind", Notes = "Yoga mat for pants" },
+            new Exchange { Id = 20, InitiatorUserId = 10, ReceiverUserId = 1, InitiatorProductId = 20, ReceiverProductId = 1, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Dumbbells for jeans" },
+
+            // User 11 exchanges (ID: 21-22)
+            new Exchange { Id = 21, InitiatorUserId = 11, ReceiverUserId = 2, InitiatorProductId = 21, ReceiverProductId = 3, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Desk organizer for headphones" },
+            new Exchange { Id = 22, InitiatorUserId = 11, ReceiverUserId = 3, InitiatorProductId = 22, ReceiverProductId = 5, CreatedAt = DateTime.Now, Status = ExchangeStatus.Accepted, Notes = "Notepad for sneakers" },
+
+            // User 12 exchanges (ID: 23-24)
+            new Exchange { Id = 23, InitiatorUserId = 12, ReceiverUserId = 4, InitiatorProductId = 23, ReceiverProductId = 7, CreatedAt = DateTime.Now, Status = ExchangeStatus.Rejected, RejectionReason = "Distance too far for exchange", Notes = "Vase for charger" },
+            new Exchange { Id = 24, InitiatorUserId = 12, ReceiverUserId = 5, InitiatorProductId = 24, ReceiverProductId = 9, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Pillow for shirt" },
+
+            // User 13 exchanges (ID: 25-26)
+            new Exchange { Id = 25, InitiatorUserId = 13, ReceiverUserId = 6, InitiatorProductId = 25, ReceiverProductId = 11, CreatedAt = DateTime.Now, Status = ExchangeStatus.Accepted, Notes = "Gaming mouse for laptop stand" },
+            new Exchange { Id = 26, InitiatorUserId = 13, ReceiverUserId = 7, InitiatorProductId = 26, ReceiverProductId = 13, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Keyboard for watch" },
+
+            // User 14 exchanges (ID: 27-28)
+            new Exchange { Id = 27, InitiatorUserId = 14, ReceiverUserId = 8, InitiatorProductId = 27, ReceiverProductId = 15, CreatedAt = DateTime.Now, Status = ExchangeStatus.Rejected, RejectionReason = "Item value mismatch", Notes = "Wall art for jacket" },
+            new Exchange { Id = 28, InitiatorUserId = 14, ReceiverUserId = 9, InitiatorProductId = 28, ReceiverProductId = 17, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Lamp for tablet" },
+
+            // User 15 exchanges (ID: 29-30)
+            new Exchange { Id = 29, InitiatorUserId = 15, ReceiverUserId = 10, InitiatorProductId = 29, ReceiverProductId = 19, CreatedAt = DateTime.Now, Status = ExchangeStatus.Accepted, Notes = "Thermostat for yoga mat" },
+            new Exchange { Id = 30, InitiatorUserId = 15, ReceiverUserId = 11, InitiatorProductId = 30, ReceiverProductId = 21, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Air purifier for organizer" },
+
+            // User 16 exchanges (ID: 31-32)
+            new Exchange { Id = 31, InitiatorUserId = 16, ReceiverUserId = 12, InitiatorProductId = 31, ReceiverProductId = 23, CreatedAt = DateTime.Now, Status = ExchangeStatus.Rejected, RejectionReason = "Communication issues", Notes = "Sunglasses for vase" },
+            new Exchange { Id = 32, InitiatorUserId = 16, ReceiverUserId = 13, InitiatorProductId = 32, ReceiverProductId = 25, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Wallet for gaming mouse" },
+
+            // User 17 exchanges (ID: 33-34)
+            new Exchange { Id = 33, InitiatorUserId = 17, ReceiverUserId = 14, InitiatorProductId = 33, ReceiverProductId = 27, CreatedAt = DateTime.Now, Status = ExchangeStatus.Accepted, Notes = "Hoodie for wall art" },
+            new Exchange { Id = 34, InitiatorUserId = 17, ReceiverUserId = 15, InitiatorProductId = 34, ReceiverProductId = 29, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Cap for thermostat" },
+
+            // User 18 exchanges (ID: 35-36)
+            new Exchange { Id = 35, InitiatorUserId = 18, ReceiverUserId = 16, InitiatorProductId = 35, ReceiverProductId = 31, CreatedAt = DateTime.Now, Status = ExchangeStatus.Rejected, RejectionReason = "Schedule conflicts for meetup", Notes = "Portable charger for sunglasses" },
+            new Exchange { Id = 36, InitiatorUserId = 18, ReceiverUserId = 17, InitiatorProductId = 36, ReceiverProductId = 33, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "USB cables for hoodie" },
+
+            // User 19 exchanges (ID: 37-38)
+            new Exchange { Id = 37, InitiatorUserId = 19, ReceiverUserId = 18, InitiatorProductId = 37, ReceiverProductId = 35, CreatedAt = DateTime.Now, Status = ExchangeStatus.Accepted, Notes = "Cookware for charger" },
+            new Exchange { Id = 38, InitiatorUserId = 19, ReceiverUserId = 1, InitiatorProductId = 38, ReceiverProductId = 1, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Knife set for jeans" },
+
+            // User 20 exchanges (ID: 39-40)
+            new Exchange { Id = 39, InitiatorUserId = 20, ReceiverUserId = 2, InitiatorProductId = 39, ReceiverProductId = 3, CreatedAt = DateTime.Now, Status = ExchangeStatus.Rejected, RejectionReason = "Product quality concerns", Notes = "Pants for headphones" },
+            new Exchange { Id = 40, InitiatorUserId = 20, ReceiverUserId = 3, InitiatorProductId = 40, ReceiverProductId = 5, CreatedAt = DateTime.Now, Status = ExchangeStatus.Pending, Notes = "Sweater for sneakers" }
         );
-
-
 
         //Soluciona un problema con sqlite
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
