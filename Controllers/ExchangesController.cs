@@ -42,7 +42,7 @@ namespace monchotradebackend.controllers
                         ReceiverProductId = e.ReceiverProductId,
                         CreatedAt = e.CreatedAt,
                         UpdatedAt = e.UpdatedAt,
-                        Status = e.Status,
+                        Status = e.Status.ToString(),
                         RejectionReason = e.RejectionReason,
                         Notes = e.Notes,
                         InitiatorUserName = e.InitiatorUser.Name,
@@ -81,7 +81,7 @@ namespace monchotradebackend.controllers
                     ReceiverProductId = e.ReceiverProductId,
                     CreatedAt = e.CreatedAt,
                     UpdatedAt = e.UpdatedAt,
-                    Status = e.Status,
+                    Status = e.Status.ToString(),
                     RejectionReason = e.RejectionReason,
                     Notes = e.Notes,
                     InitiatorUserName = e.InitiatorUser.Name,
@@ -128,7 +128,7 @@ namespace monchotradebackend.controllers
                     ReceiverProductId = exchange.ReceiverProductId,
                     CreatedAt = exchange.CreatedAt,
                     UpdatedAt = exchange.UpdatedAt,
-                    Status = exchange.Status,
+                    Status = exchange.Status.ToString(),
                     RejectionReason = exchange.RejectionReason,
                     Notes = exchange.Notes,
                     InitiatorUserName = exchange.InitiatorUser.Name,
@@ -194,7 +194,7 @@ namespace monchotradebackend.controllers
                     ReceiverUserId = exchange.ReceiverUserId,
                     InitiatorProductId = exchange.InitiatorProductId,
                     ReceiverProductId = exchange.ReceiverProductId,
-                    Status = exchange.Status,
+                    Status = exchange.Status.ToString(),
                     RejectionReason = exchange.RejectionReason,
                     Notes = exchange.Notes
                 };
@@ -206,7 +206,7 @@ namespace monchotradebackend.controllers
                     return BadRequest(ModelState);
                 }
 
-                exchange.Status = exchangeDto.Status;
+                exchange.Status = Enum.Parse<ExchangeStatus>(exchangeDto.Status);  // String a enum  
                 exchange.RejectionReason = exchangeDto.RejectionReason;
                 exchange.Notes = exchangeDto.Notes;
                 exchange.UpdatedAt = DateTime.Now;
