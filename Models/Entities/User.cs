@@ -37,6 +37,13 @@ public class User
     public string PasswordHash { get; set; } = string.Empty;
 
     // Virtual navigation properties for lazy loading
+    
+    // Intercambios donde el usuario es el iniciador
+    public virtual ICollection<Exchange> InitiatedExchanges { get; set; } = new List<Exchange>();
+
+    // Intercambios donde el usuario es el receptor
+    public virtual ICollection<Exchange> ReceivedExchanges { get; set; } = new List<Exchange>();
+    
     public virtual ProfileImage? ProfileImage { get; set; }
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

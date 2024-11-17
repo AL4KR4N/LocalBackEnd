@@ -3,13 +3,20 @@ using monchotradebackend.Interface;
 using monchotradebackend.models.entities;
 using monchotradebackend.models.dtos;
 using Microsoft.EntityFrameworkCore;
-using monchotradebackend.service;
-using Newtonsoft.Json;
-using Azure;
 using Microsoft.AspNetCore.JsonPatch;
 using System.ComponentModel.DataAnnotations;
 
-namespace monchotradebackend.controllers 
+/*
+    Endpoints implementados
+    
+    Get{id} GetUserById
+    Patch{id} UpdateUser
+    Get products/{useid} GetProductsByUserId
+*/
+
+
+
+namespace monchotradebackend.controllers
 {
     [ApiController]
     [Route("user")]
@@ -63,6 +70,34 @@ namespace monchotradebackend.controllers
                 return StatusCode(500, "An error occurred while fetching user data.");
             }
         }
+        
+         [HttpGet("contactinfo/{id}")]
+        public async Task<ActionResult<UserContactInfoDto>> GetUserContactInfoById(int id)
+        {
+            try
+            {
+                var user = await _dbRepository.GetByIdAsync(id); 
+
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                var userDto = new UserContactInfoDto
+                {
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                };
+
+                return Ok(userDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching user data for ID: {Id}", id);
+                return StatusCode(500, "An error occurred while fetching user data.");
+            }
+        }
+
 
         //Proper patch update implementation 
         [HttpPatch("{id}")]
@@ -150,6 +185,8 @@ namespace monchotradebackend.controllers
             var user = await _dbRepository.GetQueryable()
                 .Include(p => p.Products)
                     .ThenInclude(p => p.Images)
+                .Include(p => p.Products)
+                    .ThenInclude(p => p.ProductCategory) 
                 .FirstOrDefaultAsync(p => p.Id == userId);
 
         if (user == null)
@@ -173,7 +210,7 @@ namespace monchotradebackend.controllers
                 ImageUrl = $"https://localhost:7001/uploads/products/{product.Images?.FirstOrDefault()?.Url ?? "default-image.jpg"}",
                 OfferedBy = user.Name, // o cualquier propiedad del usuario que identifique al vendedor
                 Description = product.Description,
-                Category = product.Category,
+                Category = product.ProductCategory.Name,
                 TotalNumber = totalItems,
                 Quantity = product.Quantity
                 // Agrega otras propiedades según tu modelo

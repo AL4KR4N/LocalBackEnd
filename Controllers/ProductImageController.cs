@@ -5,6 +5,16 @@ using monchotradebackend.models.dtos;
 using Microsoft.EntityFrameworkCore;
 using monchotradebackend.service;
 
+/*
+    Endpoints implementados
+    Get GetAllProductImages
+    Get product/{productId} GetProductImagesByProductId
+    Post CreateProductImage
+    Put{id} UpdateProductImage -> cambiar a patch
+    Delete{id} DeleteProductImage
+*/
+
+
 namespace monchotradebackend.controllers
 {
     [ApiController]
@@ -74,7 +84,7 @@ namespace monchotradebackend.controllers
                     return StatusCode(StatusCodes.Status400BadRequest, "id in url and form body does not match."); 
                 }
 
-                var existingProductImage = await _dbRepository.GetByIdAsync(id); 
+                var existingProductImage = await _dbRepository.GetQueryable().FirstOrDefaultAsync(p => p.ProductId == productImageToUpdate.ProductId); 
                 if(existingProductImage == null)
                 {
                     return StatusCode(StatusCodes.Status404NotFound, $"Product image with id : {id} not found");
@@ -101,8 +111,8 @@ namespace monchotradebackend.controllers
                 if(productImageToUpdate.ImageUrl == null)
                     return StatusCode(StatusCodes.Status400BadRequest, "Product Image Url is null");
 
-                existingProductImage.Id = productImageToUpdate.Id;
-                existingProductImage.ProductId = productImageToUpdate.ProductId; 
+               // existingProductImage.Id = productImageToUpdate.Id;
+               // existingProductImage.ProductId = productImageToUpdate.ProductId; 
                 existingProductImage.Url = productImageToUpdate.ImageUrl;
 
                 var updatedProduct = await _dbRepository.UpdateAsync(existingProductImage);

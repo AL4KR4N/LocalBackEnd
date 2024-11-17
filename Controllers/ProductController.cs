@@ -11,6 +11,16 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.JsonPatch;
 
+/*
+    Endpoints implementados
+    Get GetAllProducts
+    Get{id} GetProductById
+    Post CreateProduct
+    Patch {id} UpdateProduct
+    Delete {id} DeleteProduct
+*/
+
+
 namespace monchotradebackend.controllers
 {
 
@@ -70,20 +80,25 @@ namespace monchotradebackend.controllers
     public class ProductController : ControllerBase
     {
         private readonly IFileService _fileService;
-        private readonly IRepository<Product, int> _dbRepository;
         private readonly ILogger<ProductController> _logger;
-
+        private readonly IRepository<Product, int> _dbRepository;
+        private readonly IRepository<Category, int> _dbRepositoryCategory;
+        private readonly IRepository<ProductImage, int> _dbRepositoryProductImage;
         public ProductController(
             IFileService fileService, 
             IRepository<Product, int> dbRepository, 
-            ILogger<ProductController> logger)
+            ILogger<ProductController> logger, 
+            IRepository<Category, int> dbRepositoryCategory, 
+            IRepository<ProductImage, int> dbRepositoryProductImage)
         {
             _fileService = fileService;
             _dbRepository = dbRepository;
             _logger = logger;
+            _dbRepositoryCategory = dbRepositoryCategory;
+            _dbRepositoryProductImage = dbRepositoryProductImage;
         }
-
-      [HttpGet]
+    
+        [HttpGet]
         public async Task<ActionResult<PaginatedResponse<ProductDto>>> GetAllProducts([FromQuery] PaginationParameters parameters)
         {
             try
@@ -91,7 +106,8 @@ namespace monchotradebackend.controllers
                 // Get the base query
                 var query = _dbRepository.GetQueryable()
                     .Include(u => u.User)
-                    .Include(i => i.Images);
+                    .Include(i => i.Images)
+                    .Include(p => p.ProductCategory);
 
                 // Get total count
                 var totalItems = await query.CountAsync();
@@ -110,7 +126,7 @@ namespace monchotradebackend.controllers
                         ImageUrl = p.Images.FirstOrDefault().Url,
                         OfferedBy = p.User != null ? p.User.Name : "",
                         Description = p.Description,
-                        Category = p.Category,
+                        Category = p.ProductCategory.Name,
                         TotalNumber = totalItems
                     })
                     .ToListAsync();
@@ -152,6 +168,8 @@ namespace monchotradebackend.controllers
             var product = await _dbRepository.GetQueryable()
                 .Include(p => p.User)
                 .Include(p => p.Images)
+                .Include(p => p.ProductCategory)
+                
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
@@ -167,7 +185,7 @@ namespace monchotradebackend.controllers
                 ImageUrl = product.Images.FirstOrDefault()?.Url ?? "",  // Use null-checking for Images collection
                 OfferedBy = product.User?.Name ?? "",  // Use null-checking for User
                 Description = product.Description,
-                Category = product.Category
+                Category = product.ProductCategory.Name
             };
 
             return Ok(productDto);
@@ -182,19 +200,51 @@ namespace monchotradebackend.controllers
 
         //Create/Post product 
         [HttpPost]
-        public async Task<ActionResult> CreateProduct(Product  newProduct)
+        public async Task<ActionResult> CreateProduct(ProductCreateDto  newProduct)
         {
             try
             {
-                bool exists = await _dbRepository.GetQueryable()
-                    .AnyAsync(s => s.Id == newProduct.Id);
-
-                if (exists)
+                if(newProduct == null)
+                    return BadRequest("nuevo producto es nulo");
+                    
+                
+                if(newProduct.ImageFile == null)
+                    return BadRequest("nuevo producto no tiene imagen");
+                
+                var categories = await _dbRepositoryCategory.GetAllAsync();
+                var category = categories?.FirstOrDefault(c => c.Name == newProduct.Category);
+        
+                if (category == null)
                 {
-                    return BadRequest("Id del salario ya está registrado.");
+                    _logger.LogWarning($"Category not found: {newProduct.Category}");
+                    return BadRequest($"Category '{newProduct.Category}' not found");
                 }
 
-                await _dbRepository.InsertAsync(newProduct);
+                var product = new Product{
+                    UserId = newProduct.UserId,
+                    Name = newProduct.Title,
+                    Description = newProduct.Description,
+                    Quantity = newProduct.Quantity, 
+                    CategoryId = category.Id, 
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsActive  = newProduct.IsActive,
+                };
+
+                
+
+                string[] allowedFileExtensions = [".jpg", ".jpeg", ".png", ".jfif"]; 
+                string createdImageName = await _fileService.SaveFileAsync(newProduct.ImageFile, allowedFileExtensions,UploadType.Product);  
+                
+                await _dbRepository.InsertAsync(product);
+                await _dbRepository.SaveChangesAsync();
+
+                var image = new ProductImage{
+                    Url = createdImageName,
+                    ProductId = product.Id 
+                }; 
+
+                await _dbRepositoryProductImage.InsertAsync(image); 
                 await _dbRepository.SaveChangesAsync();
 
                 return Ok();
@@ -206,107 +256,84 @@ namespace monchotradebackend.controllers
             }
         }
 
-        //Update/Put product 
- [HttpPatch("{id}")]
-public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocument<ProductUpdateDto> patchDoc)
-{
-    try
-    {
-        if (patchDoc == null)
+     // Update/Put product 
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocument<ProductUpdateDto> patchDoc)
         {
-            return BadRequest("Patch document cannot be null");
-        }
-
-        // Get existing product
-        var existingProduct = await _dbRepository.GetQueryable()
-            .Include(p => p.User)
-            .Include(p => p.Images)
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        if (existingProduct == null)
-        {
-            return NotFound($"Product with ID {id} not found");
-        }
-
-        // Create DTO from existing product
-        var productDto = new ProductUpdateDto
-        {
-            Title = existingProduct.Name,
-            ImageUrl = existingProduct.Images?.FirstOrDefault()?.Url ?? string.Empty,
-            OfferedBy = existingProduct.User.Name,
-            Description = existingProduct.Description,
-            Category = existingProduct.Category,
-            Quantity = existingProduct.Quantity
-        };
-
-        // Apply patch operations to the DTO
-        patchDoc.ApplyTo(productDto, ModelState);
-
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        // Validate the patched DTO
-        var validationContext = new ValidationContext(productDto);
-        var validationResults = new List<ValidationResult>();
-        if (!Validator.TryValidateObject(productDto, validationContext, validationResults, true))
-        {
-            return BadRequest(validationResults);
-        }
-
-        // Update the existing product entity with patched values
-        existingProduct.Name = productDto.Title;
-        existingProduct.User.Name = productDto.OfferedBy;
-        existingProduct.Description = productDto.Description;
-        existingProduct.Category = productDto.Category;
-        existingProduct.Quantity = productDto.Quantity;
-
-        // Handle image update if the ImageUrl has changed
-        if (!string.IsNullOrEmpty(productDto.ImageUrl))
-        {
-            var currentImage = existingProduct.Images?.FirstOrDefault();
-            if (currentImage == null)
+            try
             {
-                // Add new image
-                existingProduct.Images = new List<ProductImage>
+                if (patchDoc == null)
                 {
-                    new ProductImage
-                    {
-                        Url = productDto.ImageUrl,
-                        ProductId = existingProduct.Id
-                    }
+                    return BadRequest("Patch document cannot be null");
+                }
+
+                // Get existing product
+                var existingProduct = await _dbRepository.GetQueryable()
+                    .Include(p => p.User)
+                    .Include(p => p.ProductCategory)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (existingProduct == null)
+                {
+                    return NotFound($"Product with ID {id} not found");
+                }
+
+                // Create DTO from existing product
+                var productDto = new ProductUpdateDto
+                {
+                    Title = existingProduct.Name,
+                    Description = existingProduct.Description,
+                    Category = existingProduct.ProductCategory.Name,
+                    Quantity = existingProduct.Quantity,
+                    IsActive = existingProduct.IsActive
                 };
+
+                // Apply patch operations to the DTO
+                patchDoc.ApplyTo(productDto, ModelState);
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Validate the patched DTO
+                var validationContext = new ValidationContext(productDto);
+                var validationResults = new List<ValidationResult>();
+                if (!Validator.TryValidateObject(productDto, validationContext, validationResults, true))
+                {
+                    return BadRequest(validationResults);
+                }
+
+                // Update the existing product entity with patched values
+                existingProduct.Name = productDto.Title;
+                existingProduct.Description = productDto.Description;
+                existingProduct.ProductCategory.Name = productDto.Category;
+                existingProduct.Quantity = productDto.Quantity;
+                existingProduct.IsActive = productDto.IsActive;
+
+                // Save changes
+                await _dbRepository.UpdateAsync(existingProduct);
+                await _dbRepository.SaveChangesAsync();
+
+                // Return updated product
+                return Ok(new
+                {
+                    Id = existingProduct.Id,
+                    Title = existingProduct.Name,
+                    Description = existingProduct.Description,
+                    Category = existingProduct.ProductCategory.Name,
+                    Quantity = existingProduct.Quantity,
+                    IsActive = existingProduct.IsActive,
+                    ImageUrl = existingProduct.Images?.FirstOrDefault()?.Url
+                });
             }
-            else if (currentImage.Url != productDto.ImageUrl)
+            catch (Exception ex)
             {
-                // Update existing image
-                currentImage.Url = productDto.ImageUrl;
+                _logger.LogError(ex, "Error updating product with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the product");
             }
         }
 
-        // Save changes
-        await _dbRepository.UpdateAsync(existingProduct);
-        await _dbRepository.SaveChangesAsync();
-
-        // Return updated product
-        return Ok(new
-        {
-            Id = existingProduct.Id,
-            Title = existingProduct.Name,
-            ImageUrl = existingProduct.Images?.FirstOrDefault()?.Url,
-            OfferedBy = existingProduct.User.Name,
-            Description = existingProduct.Description,
-            Category = existingProduct.Category,
-            Quantity = existingProduct.Quantity
-        });
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error updating product with ID {Id}", id);
-        return StatusCode(500, "An error occurred while updating the product");
-    }
-}
 
         //Delete product
         [HttpDelete("{id}")]
@@ -334,6 +361,5 @@ public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocum
 
 
     }
-
 
 }

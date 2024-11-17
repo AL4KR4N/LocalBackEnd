@@ -5,6 +5,20 @@ using monchotradebackend.models.dtos;
 using Microsoft.EntityFrameworkCore;
 using monchotradebackend.service;
 
+
+/*
+    Endpoints implementados
+    Get GetAllProfilePics
+    Get user/{userId} GetProfileImageByUserId
+    Post CreateProfileImage
+    Put{id} UpdateProfileImage -> cambiar a patch
+    Delete{id} DeleteProfileImage
+*/
+
+
+
+
+
 namespace monchotradebackend.controllers
 {
     [ApiController]
@@ -35,7 +49,7 @@ namespace monchotradebackend.controllers
                     return StatusCode(StatusCodes.Status400BadRequest, "File size should not exceed 1 MB");             
                 }
 
-                string[] allowedFileExtensions = [".jpg", ".jpeg", ".png"];
+                string[] allowedFileExtensions = [".jpg", ".jpeg", ".png", ".jfif"];
 
                 if(imageToAdd.ImageFile == null)
                     return StatusCode(StatusCodes.Status400BadRequest, "ImageFile is null");
@@ -88,24 +102,24 @@ namespace monchotradebackend.controllers
                         return StatusCode(StatusCodes.Status400BadRequest, "File size should not exceed 1 MB");             
                     }
 
-                    string[] allowedFileExtensions = [".jpg", ".jpeg", ".png"]; 
+                    string[] allowedFileExtensions = [".jpg", ".jpeg", ".png", ".jfif"]; 
 
                     string createdImageName = await _fileService.SaveFileAsync(
                         profileImageToUpdate.ImageFile, 
                         allowedFileExtensions,
                         UploadType.Profile
                     ); 
-                    profileImageToUpdate.ProductImage = createdImageName;
+                    profileImageToUpdate.ProfileImageUrl = createdImageName;
                 }
 
-                if(profileImageToUpdate.ProductImage == null)
+                if(profileImageToUpdate.ProfileImageUrl == null)
                     return StatusCode(StatusCodes.Status400BadRequest, "ProductImage Url is null");
 
-                existingProfileImage.Id = profileImageToUpdate.Id;
-                existingProfileImage.UserId = profileImageToUpdate.UserId; 
-                existingProfileImage.Url = profileImageToUpdate.ProductImage;
+               // existingProfileImage.Id = profileImageToUpdate.Id;
+               // existingProfileImage.UserId = profileImageToUpdate.UserId; 
+                existingProfileImage.Url = profileImageToUpdate.ProfileImageUrl;
 
-                var updatedProduct = await _dbRepository.UpdateAsync(existingProfileImage);
+                var updatedProfileImage = await _dbRepository.UpdateAsync(existingProfileImage);
                 await _dbRepository.SaveChangesAsync();
 
                 if(profileImageToUpdate.ImageFile != null)
@@ -113,7 +127,7 @@ namespace monchotradebackend.controllers
                     _fileService.DeleteFile(oldImage, UploadType.Profile);
                 }
 
-                return Ok(updatedProduct); 
+                return Ok(updatedProfileImage); 
             }
             catch(Exception ex)
             {
@@ -147,7 +161,7 @@ namespace monchotradebackend.controllers
         }
 
         [HttpGet("user/{id}")]
-        public async Task<IActionResult> GetProfileImageBy(int id)
+        public async Task<IActionResult> GetProfileImageByUserId(int id)
         {
             try 
             {
@@ -172,7 +186,7 @@ namespace monchotradebackend.controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProfilePics()
+        public async Task<IActionResult> GetAllProfilePics()
         {
             try
             {
