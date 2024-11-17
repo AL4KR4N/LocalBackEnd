@@ -107,6 +107,85 @@ namespace monchotradebackend.controllers
         }
         }
 
+        [HttpGet("user/initiator/{userid}")]
+        public async Task<ActionResult<List<ExchangeDto>>> GetInitiatorExchangesByUserId(int userid)
+        {
+        try
+        {
+            var exchanges = await _dbRepository.GetQueryable()
+                .Include(e => e.InitiatorUser)
+                .Include(e => e.ReceiverUser) 
+                .Include(e => e.InitiatorProduct)
+                .Include(e => e.ReceiverProduct)
+                .Where(u => u.InitiatorUserId == userid)
+                .Select(e => new ExchangeDto
+                {
+                    Id = e.Id,
+                    InitiatorUserId = e.InitiatorUserId,
+                    ReceiverUserId = e.ReceiverUserId,
+                    InitiatorProductId = e.InitiatorProductId,
+                    ReceiverProductId = e.ReceiverProductId,
+                    CreatedAt = e.CreatedAt,
+                    UpdatedAt = e.UpdatedAt,
+                    Status = e.Status.ToString(),
+                    RejectionReason = e.RejectionReason,
+                    Notes = e.Notes,
+                    InitiatorUserName = e.InitiatorUser.Name,
+                    ReceiverUserName = e.ReceiverUser.Name,
+                    InitiatorProductName = e.InitiatorProduct.Name,
+                    ReceiverProductName = e.ReceiverProduct.Name
+                })
+                .ToListAsync();
+
+            return Ok(exchanges);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching exchanges data by user id.");
+            return StatusCode(500, "An error occurred while fetching exchanges data by user id.");
+        }
+        }
+
+
+        [HttpGet("user/receiver/{userid}")]
+        public async Task<ActionResult<List<ExchangeDto>>> GetReceiverExchangesByUserId(int userid)
+        {
+        try
+        {
+            var exchanges = await _dbRepository.GetQueryable()
+                .Include(e => e.InitiatorUser)
+                .Include(e => e.ReceiverUser) 
+                .Include(e => e.InitiatorProduct)
+                .Include(e => e.ReceiverProduct)
+                .Where(u =>u.ReceiverUserId == userid)
+                .Select(e => new ExchangeDto
+                {
+                    Id = e.Id,
+                    InitiatorUserId = e.InitiatorUserId,
+                    ReceiverUserId = e.ReceiverUserId,
+                    InitiatorProductId = e.InitiatorProductId,
+                    ReceiverProductId = e.ReceiverProductId,
+                    CreatedAt = e.CreatedAt,
+                    UpdatedAt = e.UpdatedAt,
+                    Status = e.Status.ToString(),
+                    RejectionReason = e.RejectionReason,
+                    Notes = e.Notes,
+                    InitiatorUserName = e.InitiatorUser.Name,
+                    ReceiverUserName = e.ReceiverUser.Name,
+                    InitiatorProductName = e.InitiatorProduct.Name,
+                    ReceiverProductName = e.ReceiverProduct.Name
+                })
+                .ToListAsync();
+
+            return Ok(exchanges);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching exchanges data by user id.");
+            return StatusCode(500, "An error occurred while fetching exchanges data by user id.");
+        }
+        }
+
 
 
         [HttpGet("{id}")]
@@ -157,83 +236,69 @@ namespace monchotradebackend.controllers
        
 
 
-      [HttpPut]         
-public async Task<ActionResult> CreateExchange(ExchangeCreationDto newExchange)         
-{             
-    try             
-    {
-        // Get the receiver's user ID from the product
-        var receiverProduct = await _dbProductRepository.GetQueryable()
-            .Include(p => p.User)
-            .FirstOrDefaultAsync(p => p.Id == newExchange.ReceiverProductId);
+        [HttpPut]         
+        public async Task<ActionResult> CreateExchange(ExchangeCreationDto newExchange)         
+        {             
+            try             
+            {
+                // Get the receiver's user ID from the product
+                var receiverProduct = await _dbProductRepository.GetQueryable()
+                    .Include(p => p.User)
+                    .FirstOrDefaultAsync(p => p.Id == newExchange.ReceiverProductId);
 
-        if (receiverProduct == null)
-        {
-            return BadRequest("Receiver product does not exist.");
+                if (receiverProduct == null)
+                {
+                    return BadRequest("Receiver product does not exist.");
+                }
+
+                // Validate that users exist                 
+                var initiator = await _dbUserRepository.GetByIdAsync(newExchange.InitiatorUserId);                 
+                var receiver = await _dbUserRepository.GetByIdAsync(receiverProduct.User.Id);                  
+                
+                if (initiator == null || receiver == null)                 
+                {                     
+                    return BadRequest("One or both users do not exist.");                 
+                }                  
+
+                // Validate initiator product exists and belongs to initiator
+                var initiatorProduct = await _dbProductRepository.GetByIdAsync(newExchange.InitiatorProductId);                 
+                
+                if (initiatorProduct == null)                 
+                {                     
+                    return BadRequest("Initiator product does not exist.");                 
+                }                  
+
+                if (initiatorProduct.UserId != newExchange.InitiatorUserId)                     
+                {                     
+                    return BadRequest("Product does not belong to the initiator user.");                 
+                }                  
+                var exchange = new Exchange                 
+                {                     
+                    InitiatorUserId = newExchange.InitiatorUserId,                     
+                    ReceiverUserId = receiverProduct.User.Id,                     
+                    InitiatorProductId = newExchange.InitiatorProductId,                     
+                    ReceiverProductId = newExchange.ReceiverProductId,                     
+                    Notes = newExchange.Notes,                     
+                    CreatedAt = DateTime.UtcNow,                     
+                    Status = ExchangeStatus.Pending,                     
+                    InitiatorUser = initiator,                     
+                    ReceiverUser = receiver,                     
+                    InitiatorProduct = initiatorProduct,                     
+                    ReceiverProduct = receiverProduct                 
+                };                  
+
+                await _dbRepository.InsertAsync(exchange);                 
+                await _dbRepository.SaveChangesAsync();                  
+
+                return Ok(new { id = exchange.Id, message = "Exchange created successfully" });             
+            }             
+            catch (Exception ex)             
+            {                 
+                _logger.LogError(ex, "Error creating new exchange. InitiatorUserId: {InitiatorUserId}, ReceiverProductId: {ReceiverProductId}",                     
+                    newExchange.InitiatorUserId, newExchange.ReceiverProductId);                 
+                return StatusCode(500, "An error occurred while creating new exchange.");             
+            }         
         }
-
-        // Validate that users exist                 
-        var initiator = await _dbUserRepository.GetByIdAsync(newExchange.InitiatorUserId);                 
-        var receiver = await _dbUserRepository.GetByIdAsync(receiverProduct.User.Id);                  
-        
-        if (initiator == null || receiver == null)                 
-        {                     
-            return BadRequest("One or both users do not exist.");                 
-        }                  
-
-        // Validate initiator product exists and belongs to initiator
-        var initiatorProduct = await _dbProductRepository.GetByIdAsync(newExchange.InitiatorProductId);                 
-        
-        if (initiatorProduct == null)                 
-        {                     
-            return BadRequest("Initiator product does not exist.");                 
-        }                  
-
-        if (initiatorProduct.UserId != newExchange.InitiatorUserId)                     
-        {                     
-            return BadRequest("Product does not belong to the initiator user.");                 
-        }                  
-        /*
-        Check if products are already in an active exchange                 
-        var existingExchange = await _dbRepository.GetQueryable()
-            .FirstOrDefaultAsync(e =>                     
-                (e.InitiatorProductId == newExchange.InitiatorProductId ||                     
-                e.ReceiverProductId == newExchange.ReceiverProductId) &&                     
-                (e.Status == ExchangeStatus.Pending || e.Status == ExchangeStatus.Accepted));                  
-
-        if (existingExchange != null)                 
-        {                     
-            return BadRequest("One or both products are already in an active exchange.");                 
-        }                  
-            */
-        // Create new exchange
-        var exchange = new Exchange                 
-        {                     
-            InitiatorUserId = newExchange.InitiatorUserId,                     
-            ReceiverUserId = receiverProduct.User.Id,                     
-            InitiatorProductId = newExchange.InitiatorProductId,                     
-            ReceiverProductId = newExchange.ReceiverProductId,                     
-            Notes = newExchange.Notes,                     
-            CreatedAt = DateTime.UtcNow,                     
-            Status = ExchangeStatus.Pending,                     
-            InitiatorUser = initiator,                     
-            ReceiverUser = receiver,                     
-            InitiatorProduct = initiatorProduct,                     
-            ReceiverProduct = receiverProduct                 
-        };                  
-
-        await _dbRepository.InsertAsync(exchange);                 
-        await _dbRepository.SaveChangesAsync();                  
-
-        return Ok(new { id = exchange.Id, message = "Exchange created successfully" });             
-    }             
-    catch (Exception ex)             
-    {                 
-        _logger.LogError(ex, "Error creating new exchange. InitiatorUserId: {InitiatorUserId}, ReceiverProductId: {ReceiverProductId}",                     
-            newExchange.InitiatorUserId, newExchange.ReceiverProductId);                 
-        return StatusCode(500, "An error occurred while creating new exchange.");             
-    }         
-}
 
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateExchange(int id, [FromBody] JsonPatchDocument<ExchangeDto> patchDoc)

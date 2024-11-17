@@ -70,6 +70,34 @@ namespace monchotradebackend.controllers
                 return StatusCode(500, "An error occurred while fetching user data.");
             }
         }
+        
+         [HttpGet("contactinfo/{id}")]
+        public async Task<ActionResult<UserContactInfoDto>> GetUserContactInfoById(int id)
+        {
+            try
+            {
+                var user = await _dbRepository.GetByIdAsync(id); 
+
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                var userDto = new UserContactInfoDto
+                {
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                };
+
+                return Ok(userDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching user data for ID: {Id}", id);
+                return StatusCode(500, "An error occurred while fetching user data.");
+            }
+        }
+
 
         //Proper patch update implementation 
         [HttpPatch("{id}")]
