@@ -25,9 +25,7 @@ namespace monchotradebackend.models.dtos
 
 public class ExchangeCreationDto{
     public int InitiatorUserId { get; set; }
-    public int ReceiverUserId { get; set; }
     public int InitiatorProductId { get; set; }
     public int ReceiverProductId { get; set; }
     public string Notes {get; set;} = string.Empty;
-
 }

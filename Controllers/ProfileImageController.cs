@@ -102,24 +102,24 @@ namespace monchotradebackend.controllers
                         return StatusCode(StatusCodes.Status400BadRequest, "File size should not exceed 1 MB");             
                     }
 
-                    string[] allowedFileExtensions = [".jpg", ".jpeg", ".png"]; 
+                    string[] allowedFileExtensions = [".jpg", ".jpeg", ".png", ".jfif"]; 
 
                     string createdImageName = await _fileService.SaveFileAsync(
                         profileImageToUpdate.ImageFile, 
                         allowedFileExtensions,
                         UploadType.Profile
                     ); 
-                    profileImageToUpdate.ProductImage = createdImageName;
+                    profileImageToUpdate.ProfileImageUrl = createdImageName;
                 }
 
-                if(profileImageToUpdate.ProductImage == null)
+                if(profileImageToUpdate.ProfileImageUrl == null)
                     return StatusCode(StatusCodes.Status400BadRequest, "ProductImage Url is null");
 
-                existingProfileImage.Id = profileImageToUpdate.Id;
-                existingProfileImage.UserId = profileImageToUpdate.UserId; 
-                existingProfileImage.Url = profileImageToUpdate.ProductImage;
+               // existingProfileImage.Id = profileImageToUpdate.Id;
+               // existingProfileImage.UserId = profileImageToUpdate.UserId; 
+                existingProfileImage.Url = profileImageToUpdate.ProfileImageUrl;
 
-                var updatedProduct = await _dbRepository.UpdateAsync(existingProfileImage);
+                var updatedProfileImage = await _dbRepository.UpdateAsync(existingProfileImage);
                 await _dbRepository.SaveChangesAsync();
 
                 if(profileImageToUpdate.ImageFile != null)
@@ -127,7 +127,7 @@ namespace monchotradebackend.controllers
                     _fileService.DeleteFile(oldImage, UploadType.Profile);
                 }
 
-                return Ok(updatedProduct); 
+                return Ok(updatedProfileImage); 
             }
             catch(Exception ex)
             {

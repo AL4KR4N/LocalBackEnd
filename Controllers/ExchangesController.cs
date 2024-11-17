@@ -13,14 +13,21 @@ namespace monchotradebackend.controllers
     public class ExchangesController : ControllerBase
     {
         private readonly IRepository<Exchange, int> _dbRepository;
+        private readonly IRepository<User, int> _dbUserRepository;
+        private readonly IRepository<Product, int> _dbProductRepository;
         private readonly ILogger<ExchangesController> _logger;
 
         public ExchangesController(
             IRepository<Exchange, int> dbRepository,
-            ILogger<ExchangesController> logger)
+            ILogger<ExchangesController> logger,
+            IRepository<User, int> dbUserRepository,
+            IRepository<Product, int> dbProductRepository)
         {
             _dbRepository = dbRepository;
             _logger = logger;
+            _dbUserRepository = dbUserRepository;
+            _dbProductRepository = dbProductRepository;
+
         }
 
         [HttpGet]
@@ -150,25 +157,83 @@ namespace monchotradebackend.controllers
        
 
 
-        [HttpPut]
-        public async Task<ActionResult> CreateExchange(Exchange newExchange)
+      [HttpPut]         
+public async Task<ActionResult> CreateExchange(ExchangeCreationDto newExchange)         
+{             
+    try             
+    {
+        // Get the receiver's user ID from the product
+        var receiverProduct = await _dbProductRepository.GetQueryable()
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.Id == newExchange.ReceiverProductId);
+
+        if (receiverProduct == null)
         {
-            try
-            {
-                newExchange.CreatedAt = DateTime.Now;
-                newExchange.Status = ExchangeStatus.Pending;
-
-                await _dbRepository.InsertAsync(newExchange);
-                await _dbRepository.SaveChangesAsync();
-
-                return Ok(newExchange.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating new exchange.");
-                return StatusCode(500, "An error occurred while creating new exchange.");
-            }
+            return BadRequest("Receiver product does not exist.");
         }
+
+        // Validate that users exist                 
+        var initiator = await _dbUserRepository.GetByIdAsync(newExchange.InitiatorUserId);                 
+        var receiver = await _dbUserRepository.GetByIdAsync(receiverProduct.User.Id);                  
+        
+        if (initiator == null || receiver == null)                 
+        {                     
+            return BadRequest("One or both users do not exist.");                 
+        }                  
+
+        // Validate initiator product exists and belongs to initiator
+        var initiatorProduct = await _dbProductRepository.GetByIdAsync(newExchange.InitiatorProductId);                 
+        
+        if (initiatorProduct == null)                 
+        {                     
+            return BadRequest("Initiator product does not exist.");                 
+        }                  
+
+        if (initiatorProduct.UserId != newExchange.InitiatorUserId)                     
+        {                     
+            return BadRequest("Product does not belong to the initiator user.");                 
+        }                  
+        /*
+        Check if products are already in an active exchange                 
+        var existingExchange = await _dbRepository.GetQueryable()
+            .FirstOrDefaultAsync(e =>                     
+                (e.InitiatorProductId == newExchange.InitiatorProductId ||                     
+                e.ReceiverProductId == newExchange.ReceiverProductId) &&                     
+                (e.Status == ExchangeStatus.Pending || e.Status == ExchangeStatus.Accepted));                  
+
+        if (existingExchange != null)                 
+        {                     
+            return BadRequest("One or both products are already in an active exchange.");                 
+        }                  
+            */
+        // Create new exchange
+        var exchange = new Exchange                 
+        {                     
+            InitiatorUserId = newExchange.InitiatorUserId,                     
+            ReceiverUserId = receiverProduct.User.Id,                     
+            InitiatorProductId = newExchange.InitiatorProductId,                     
+            ReceiverProductId = newExchange.ReceiverProductId,                     
+            Notes = newExchange.Notes,                     
+            CreatedAt = DateTime.UtcNow,                     
+            Status = ExchangeStatus.Pending,                     
+            InitiatorUser = initiator,                     
+            ReceiverUser = receiver,                     
+            InitiatorProduct = initiatorProduct,                     
+            ReceiverProduct = receiverProduct                 
+        };                  
+
+        await _dbRepository.InsertAsync(exchange);                 
+        await _dbRepository.SaveChangesAsync();                  
+
+        return Ok(new { id = exchange.Id, message = "Exchange created successfully" });             
+    }             
+    catch (Exception ex)             
+    {                 
+        _logger.LogError(ex, "Error creating new exchange. InitiatorUserId: {InitiatorUserId}, ReceiverProductId: {ReceiverProductId}",                     
+            newExchange.InitiatorUserId, newExchange.ReceiverProductId);                 
+        return StatusCode(500, "An error occurred while creating new exchange.");             
+    }         
+}
 
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateExchange(int id, [FromBody] JsonPatchDocument<ExchangeDto> patchDoc)
