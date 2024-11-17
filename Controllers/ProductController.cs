@@ -256,108 +256,84 @@ namespace monchotradebackend.controllers
             }
         }
 
-        //Update/Put product 
-[HttpPatch("{id}")]
-public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocument<ProductUpdateDto> patchDoc)
-{
-    try
-    {
-        if (patchDoc == null)
+     // Update/Put product 
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] JsonPatchDocument<ProductUpdateDto> patchDoc)
         {
-            return BadRequest("Patch document cannot be null");
-        }
-
-        // Get existing product
-        var existingProduct = await _dbRepository.GetQueryable()
-            .Include(p => p.User)
-            .Include(p => p.Images)
-            .Include(p => p.ProductCategory)
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        if (existingProduct == null)
-        {
-            return NotFound($"Product with ID {id} not found");
-        }
-
-        // Create DTO from existing product
-        var productDto = new ProductUpdateDto
-        {
-            Title = existingProduct.Name,
-            ImageUrl = existingProduct.Images?.FirstOrDefault()?.Url ?? string.Empty,
-            OfferedBy = existingProduct.User.Name,
-            Description = existingProduct.Description,
-            Category = existingProduct.ProductCategory.Name,
-            Quantity = existingProduct.Quantity
-        };
-
-        // Apply patch operations to the DTO
-        patchDoc.ApplyTo(productDto, ModelState);
-
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        // Validate the patched DTO
-        var validationContext = new ValidationContext(productDto);
-        var validationResults = new List<ValidationResult>();
-        if (!Validator.TryValidateObject(productDto, validationContext, validationResults, true))
-        {
-            return BadRequest(validationResults);
-        }
-
-        // Update the existing product entity with patched values
-        existingProduct.Name = productDto.Title;
-        existingProduct.User.Name = productDto.OfferedBy;
-        existingProduct.Description = productDto.Description;
-        existingProduct.ProductCategory.Name = productDto.Category;
-        existingProduct.Quantity = productDto.Quantity;
-
-        // Handle image update if the ImageUrl has changed
-        if (!string.IsNullOrEmpty(productDto.ImageUrl))
-        {
-            var currentImage = existingProduct.Images?.FirstOrDefault();
-            if (currentImage == null)
+            try
             {
-                // Add new image
-                existingProduct.Images = new List<ProductImage>
+                if (patchDoc == null)
                 {
-                    new ProductImage
-                    {
-                        Url = productDto.ImageUrl,
-                        ProductId = existingProduct.Id
-                    }
+                    return BadRequest("Patch document cannot be null");
+                }
+
+                // Get existing product
+                var existingProduct = await _dbRepository.GetQueryable()
+                    .Include(p => p.User)
+                    .Include(p => p.ProductCategory)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (existingProduct == null)
+                {
+                    return NotFound($"Product with ID {id} not found");
+                }
+
+                // Create DTO from existing product
+                var productDto = new ProductUpdateDto
+                {
+                    Title = existingProduct.Name,
+                    Description = existingProduct.Description,
+                    Category = existingProduct.ProductCategory.Name,
+                    Quantity = existingProduct.Quantity,
+                    IsActive = existingProduct.IsActive
                 };
+
+                // Apply patch operations to the DTO
+                patchDoc.ApplyTo(productDto, ModelState);
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Validate the patched DTO
+                var validationContext = new ValidationContext(productDto);
+                var validationResults = new List<ValidationResult>();
+                if (!Validator.TryValidateObject(productDto, validationContext, validationResults, true))
+                {
+                    return BadRequest(validationResults);
+                }
+
+                // Update the existing product entity with patched values
+                existingProduct.Name = productDto.Title;
+                existingProduct.Description = productDto.Description;
+                existingProduct.ProductCategory.Name = productDto.Category;
+                existingProduct.Quantity = productDto.Quantity;
+                existingProduct.IsActive = productDto.IsActive;
+
+                // Save changes
+                await _dbRepository.UpdateAsync(existingProduct);
+                await _dbRepository.SaveChangesAsync();
+
+                // Return updated product
+                return Ok(new
+                {
+                    Id = existingProduct.Id,
+                    Title = existingProduct.Name,
+                    Description = existingProduct.Description,
+                    Category = existingProduct.ProductCategory.Name,
+                    Quantity = existingProduct.Quantity,
+                    IsActive = existingProduct.IsActive,
+                    ImageUrl = existingProduct.Images?.FirstOrDefault()?.Url
+                });
             }
-            else if (currentImage.Url != productDto.ImageUrl)
+            catch (Exception ex)
             {
-                // Update existing image
-                currentImage.Url = productDto.ImageUrl;
+                _logger.LogError(ex, "Error updating product with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the product");
             }
         }
 
-        // Save changes
-        await _dbRepository.UpdateAsync(existingProduct);
-        await _dbRepository.SaveChangesAsync();
-
-        // Return updated product
-        return Ok(new
-        {
-            Id = existingProduct.Id,
-            Title = existingProduct.Name,
-            ImageUrl = existingProduct.Images?.FirstOrDefault()?.Url,
-            OfferedBy = existingProduct.User.Name,
-            Description = existingProduct.Description,
-            Category = existingProduct.ProductCategory.Name,
-            Quantity = existingProduct.Quantity
-        });
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error updating product with ID {Id}", id);
-        return StatusCode(500, "An error occurred while updating the product");
-    }
-}
 
         //Delete product
         [HttpDelete("{id}")]

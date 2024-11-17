@@ -65,14 +65,14 @@ namespace monchotradebackend.controllers{
         }
 
         [HttpGet("products/{categoryId}")]
-        public async Task<ActionResult<List<ProductUpdateDto>>> GetAllProductsByCategory(int categoryId)
+        public async Task<ActionResult<List<ProductByCategoryDto>>> GetAllProductsByCategory(int categoryId)
         {
             try
             {
                 var products = await _dbRepository.GetQueryable()
                     .Where(c => c.Id == categoryId)
                     .SelectMany(c => c.Products)
-                    .Select(p => new ProductUpdateDto
+                    .Select(p => new ProductByCategoryDto
                     {
                         Title = p.Name ?? string.Empty,
                         ImageUrl = p.Images != null && p.Images.Any() 

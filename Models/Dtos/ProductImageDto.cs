@@ -14,7 +14,6 @@ public class ProductImageUpdateDto{
     public int Id {get;set;}
 
     [Required]
-    [MaxLength(30)]
     public int ProductId {get;set;}
 
     [Required]

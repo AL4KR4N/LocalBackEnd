@@ -40,7 +40,7 @@ namespace monchotradebackend.service
             Directory.CreateDirectory(uploadPath);
             return uploadPath;
         }
-
+        //No cuida la creacion de imagenes duplicadas, resolverlo? mucha pupa backlog 
         public async Task<string> SaveFileAsync(IFormFile file, string[] allowedFileExtensions, UploadType uploadType)
         {
             if (file == null)

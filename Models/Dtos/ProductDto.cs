@@ -28,13 +28,24 @@ public class ProductGetbyUserIdDto{
     public int? Quantity{get;set;}
 }
 
-public class ProductUpdateDto{
+public class ProductByCategoryDto{
     public string Title {get;set;} = string.Empty;
     public string ImageUrl {get;set;} = string.Empty;
     public string OfferedBy {get; set;} = string.Empty; 
     public string Description{get;set;} = string.Empty;
     public string Category {get;set;} = string.Empty; 
+    public int? Quantity{get;set;}
+
+}
+
+public class ProductUpdateDto{
+    public string Title {get;set;} = string.Empty;
+    public string Description{get;set;} = string.Empty;
     public int Quantity{get;set;}
+    public string Category {get;set;} = string.Empty; 
+    public bool IsActive{get;set;}
+    public IFormFile? ImageFile {get;set;}
+
 }
 
 public class ProductCreateDto{
