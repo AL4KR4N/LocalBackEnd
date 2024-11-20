@@ -225,5 +225,32 @@ namespace monchotradebackend.controllers
         }
     }
 
+
+
+
+        //Delete product
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteUser(int id)
+        {
+            try
+            {
+                var user = await _dbRepository.GetByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound($"User with ID {id} not found.");
+                }
+
+                await _dbRepository.DeleteAsync(user);
+                await _dbRepository.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting user with ID {Id}.", id);
+                return StatusCode(500, "An error occurred while deleting user.");
+            }
+        }
+    
     }
 }
