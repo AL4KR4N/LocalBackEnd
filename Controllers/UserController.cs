@@ -59,7 +59,7 @@ namespace monchotradebackend.controllers
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     Country = user.Country,
-                    ProfileImageUrl = user.ProfileImage.Url
+                    ProfileImageUrl = user.ProfileImage?.Url ?? "default.jpg"
                 };
 
                 return Ok(userDto);

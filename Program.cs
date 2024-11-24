@@ -70,7 +70,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Middleware order is important
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
